@@ -1,12 +1,8 @@
-let pointArr = [];
+let displayArr = [];
 let fJSON;
 let mJSON;
-let segmentArr = [];
 let bodySlider;
 let transJSON;
-// let colSlider, alphaSlider, brushSlider;
-// let sliderDiv;
-// let undoButton;
 let drawing = [];
 let brushBoxes = [];
 let currCol;
@@ -17,7 +13,6 @@ let rad = radMax;
 let scaleX;
 let scaleY;
 // let onbeforeunload;
-
 let namesOfEmotions = [];
 let emotionSel;
 let currEmotion;
@@ -40,17 +35,10 @@ function setup() {
   saveButton = createButton("save");
   saveButton.style('background-color', color(200));
   saveButton.style('border-radius', '10%');
-  // saveButton.size(80 * scaleX, 40 * scaleY);
-  // let fontSize = 18 * scaleX;
-  // saveButton.style('font-size', fontSize + 'px');
-  // saveButton.style('padding', '10px');
   saveButton.mousePressed(saveData);
   emotionSel = createSelect();
   emotionSel.changed(() => currEmotion = emotionSel.value());
   emotionSel.style('background-color', color(200));
-  // emotionSel.size(100 * scaleX, 40 * scaleY);
-  // emotionSel.style('font-size', fontSize + 'px');
-  // emotionSel.style('border-radius', '100px');
   for (let i = 0; i < fJSON.arr.length; i++) {
     let x = fJSON.arr[i].x;
     let y = fJSON.arr[i].y;
@@ -58,7 +46,7 @@ function setup() {
       x: x,
       y: y
     }
-    pointArr.push(xy);
+    displayArr.push(xy);
   }
   lerping();
   let w = width / 9;
@@ -73,15 +61,8 @@ function setup() {
   windowResized();
 }
 
-function boxResize() {
-  let w = width / brushBoxes.length;
-  let h = rad * 2;
-  brushBoxes.forEach(b => b.resize(brushBoxes.indexOf(b) * w, height - h - 1, w, h));
-}
-
 function draw() {
   background(255);
-
   if (mouseY < height - brushBoxes[0].h && mouseY > bodySlider.ySize) {
     noCursor();
   }
@@ -102,6 +83,12 @@ function draw() {
     saveButton.style('background-color', color(200))
   }
   // if (drawing[currEmotion].length > 0) drawImage();
+}
+
+function boxResize() {
+  let w = width / brushBoxes.length;
+  let h = rad * 2;
+  brushBoxes.forEach(b => b.resize(brushBoxes.indexOf(b) * w, height - h - 1, w, h));
 }
 
 class BodySlider {
@@ -159,27 +146,27 @@ function drawBody() {
   strokeWeight(8);
   noFill();
   beginShape();
-  curveVertex(pointArr[0].x, pointArr[0].y);
-  pointArr.forEach(obj => curveVertex(obj.x, obj.y));
-  curveVertex(pointArr[0].x, pointArr[0].y);
+  curveVertex(displayArr[0].x, displayArr[0].y);
+  displayArr.forEach(obj => curveVertex(obj.x, obj.y));
+  curveVertex(displayArr[0].x, displayArr[0].y);
   endShape(CLOSE);
 
   stroke(230);
   strokeWeight(4);
   noFill();
   beginShape();
-  curveVertex(pointArr[0].x, pointArr[0].y);
-  pointArr.forEach(obj => curveVertex(obj.x, obj.y));
-  curveVertex(pointArr[0].x, pointArr[0].y);
+  curveVertex(displayArr[0].x, displayArr[0].y);
+  displayArr.forEach(obj => curveVertex(obj.x, obj.y));
+  curveVertex(displayArr[0].x, displayArr[0].y);
   endShape(CLOSE);
 
   stroke(200);
   strokeWeight(1);
   noFill();
   beginShape();
-  curveVertex(pointArr[0].x, pointArr[0].y);
-  pointArr.forEach(obj => curveVertex(obj.x, obj.y));
-  curveVertex(pointArr[0].x, pointArr[0].y);
+  curveVertex(displayArr[0].x, displayArr[0].y);
+  displayArr.forEach(obj => curveVertex(obj.x, obj.y));
+  curveVertex(displayArr[0].x, displayArr[0].y);
   endShape(CLOSE);
 }
 
@@ -190,8 +177,9 @@ function lerping() {
   let mAcc = 0;
   let mInc = 0;
   let fEnd = 10;
+  let segmentArr = [];
   let segIndex = 0;
-  for (let i = 0; i < pointArr.length; i++) {
+  for (let i = 0; i < displayArr.length; i++) {
     fIndex = i;
     if (fIndex >= fEnd && segIndex + 1 < transJSON.segmentArr.length) segIndex++;
     fEnd = transJSON.segmentArr[segIndex].fEnd;
@@ -207,8 +195,8 @@ function lerping() {
     let y = lerp(fY, mY, morphVal);
     x *= scaleX;
     y *= scaleY;
-    pointArr[i].x = x;
-    pointArr[i].y = y;
+    displayArr[i].x = x;
+    displayArr[i].y = y;
   }
 }
 
@@ -233,7 +221,7 @@ function mouseReleased() {
 }
 
 function windowResized() {
-  resizeCanvas(windowHeight / 2, windowHeight);
+  resizeCanvas((windowHeight / 2) - 2, windowHeight - 2);
   scaleX = width / 500;
   scaleY = height / 1000;
   lerping();
@@ -252,7 +240,11 @@ function windowResized() {
 function displayDrawing() {
   if (drawing[currEmotion].length > 0) {
     for (let i = 0; i < drawing[currEmotion].length; i++) {
-      let col = drawing[currEmotion][i].col;
+      let colLevels = drawing[currEmotion][i].col;
+      let r = colLevels[0];
+      let g = colLevels[1];
+      let b = colLevels[2];
+      let col = color(r, g, b);
       let brush = drawing[currEmotion][i].brush;
       let x = drawing[currEmotion][i].x * scaleX;
       let y = drawing[currEmotion][i].y * scaleY;
@@ -301,7 +293,7 @@ function brushCursor(x, y) {
 function addPoints() {
   let point = {
     brush: currBrush,
-    col: currCol,
+    col: currCol.levels,
     x: mouseX * (1 / scaleX),
     y: mouseY * (1 / scaleY),
     seed: currSeed,
@@ -319,15 +311,6 @@ function addPoints() {
   currSeed++;
 
 }
-
-// function addPoints() {
-//   let dot = {
-//     x: mouseX,
-//     y: mouseY,
-//     col: currCol
-//   }
-//   drawing[currEmotion].push(dot);
-// }
 
 function points(x, y, col) {
   noStroke();
@@ -412,7 +395,6 @@ class BrushBox {
   }
   display() {
     stroke(0);
-    //isSelected ?? highlight with border color and width
     strokeWeight(1);
     let cases = this.brush;
     switch (cases) {
@@ -537,7 +519,7 @@ function emotionMenu() {
   }
   currEmotion = 0;
 }
-//
+
 function saveData() {
 
   if (dataAdded) {
@@ -546,6 +528,12 @@ function saveData() {
     // };
     // db.collection('drawing_data').add(data);
   }
+
+  let jsonOutput = {};
+  const d = new Date();
+  jsonOutput['info'] = ['some info', 'gender: ' + bodySlider.value, d];
+  jsonOutput['drawing'] = drawing;
+  // saveJSON(jsonOutput, 'output.json');
   dataAdded = false;
 }
 //
