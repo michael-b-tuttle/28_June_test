@@ -1,8 +1,10 @@
 let displayArr = [];
+
 let fJSON;
 let mJSON;
-let bodySlider;
 let transJSON;
+
+let bodySlider;
 let drawing = [];
 let brushBoxes = [];
 let currCol;
@@ -12,12 +14,13 @@ let radMax = 15;
 let rad = radMax;
 let scaleX;
 let scaleY;
-// let onbeforeunload;
+
 let namesOfEmotions = [];
 let emotionSel;
 let currEmotion;
 let saveButton;
 let dataAdded = false;
+let animator;
 
 function preload() {
   fJSON = loadJSON('json files/fArr.json');
@@ -35,7 +38,7 @@ function setup() {
   saveButton = createButton("save");
   saveButton.style('background-color', color(200));
   saveButton.style('border-radius', '10%');
-  saveButton.mousePressed(saveData);
+  // saveButton.mousePressed(saveData);
   emotionSel = createSelect();
   emotionSel.changed(() => currEmotion = emotionSel.value());
   emotionSel.style('background-color', color(200));
@@ -58,6 +61,8 @@ function setup() {
   currCol = color(0);
   currBrush = "points";
   emotionMenu();
+  animator = new Animator();
+  animator.reset();
   windowResized();
 }
 
@@ -69,19 +74,20 @@ function draw() {
   drawBody();
   displayDrawing();
   brushCursor(mouseX, mouseY);
-  for (const b of brushBoxes) {
-    b.display();
-    b.isOver();
-  }
+  // for (const b of brushBoxes) {
+    // b.display();
+    // b.isOver();
+  // }
   noFill();
   stroke(0);
   strokeWeight(1);
   rect(0, 0, width - 1, height - 1);
+  animator.update();
   bodySlider.display();
-  if (dataAdded) saveButton.style('background-color', color(255, 255, 0));
-  else {
-    saveButton.style('background-color', color(200))
-  }
+  // if (dataAdded) saveButton.style('background-color', color(255, 255, 0));
+  // else {
+  //   saveButton.style('background-color', color(200))
+  // }
   // if (drawing[currEmotion].length > 0) drawImage();
 }
 
@@ -138,6 +144,36 @@ class BodySlider {
     ellipse(this.pos, this.ySize / 2, this.eSize, this.eSize);
 
     if (mouseY < this.ySize) cursor('pointer');
+  }
+  animate(vel) {
+    this.value += vel;
+    this.pos = map(this.value, 0, 1, 10, width - 10);
+    if (this.value > 1) this.value = 1;
+    if (this.value < 0) this.value = 0;
+  }
+}
+
+class Animator {
+  constructor() {
+    this.destPos = bodySlider.value;
+    this.diff;
+    this.speed;
+    this.velocity = 0;
+    this.currDiff;
+  }
+  update() {
+    this.currDiff = this.destPos - bodySlider.value;
+    if (abs(this.currDiff) > .1) bodySlider.animate(this.velocity);
+    else {
+      this.reset();
+    }
+    lerping();
+  }
+  reset() {
+    this.speed = random(30, 100) / 5000;
+    this.destPos = random(5, 99) /100;
+    this.diff = this.destPos - bodySlider.value;
+    this.velocity = (this.speed * this.diff);
   }
 }
 
@@ -521,7 +557,6 @@ function emotionMenu() {
 }
 
 function saveData() {
-
   if (dataAdded) {
     // let data = {
     //   points: drawing
