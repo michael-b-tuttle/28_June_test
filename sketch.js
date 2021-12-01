@@ -75,8 +75,8 @@ function draw() {
   displayDrawing();
   brushCursor(mouseX, mouseY);
   // for (const b of brushBoxes) {
-    // b.display();
-    // b.isOver();
+  // b.display();
+  // b.isOver();
   // }
   noFill();
   stroke(0);
@@ -170,14 +170,15 @@ class Animator {
     lerping();
   }
   reset() {
-    this.speed = random(30, 100) / 5000;
-    this.destPos = random(5, 99) /100;
+    this.speed = random(10, 20) / 10000;
+    this.destPos = random(5, 99) / 100;
     this.diff = this.destPos - bodySlider.value;
     this.velocity = (this.speed * this.diff);
   }
 }
 
 function drawBody() {
+
   stroke(240);
   strokeWeight(8);
   noFill();
@@ -196,7 +197,7 @@ function drawBody() {
   curveVertex(displayArr[0].x, displayArr[0].y);
   endShape(CLOSE);
 
-  stroke(200);
+  stroke(100);
   strokeWeight(1);
   noFill();
   beginShape();
@@ -205,6 +206,7 @@ function drawBody() {
   curveVertex(displayArr[0].x, displayArr[0].y);
   endShape(CLOSE);
 }
+
 
 function lerping() {
   let morphVal = bodySlider.value;
